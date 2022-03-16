@@ -1,2 +1,5 @@
 #for colab
 for_commit.ipynb
+
+# data
+*.csv
