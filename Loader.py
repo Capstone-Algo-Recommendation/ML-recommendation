@@ -22,6 +22,8 @@ class Loader:
         self.problems = pd.read_csv(os.path.join(self.DATASET_DIR , 'd'+data_no+'_problems.csv'))
         self.users_no = len(self.users)
         self.prob_no = len(self.problems)
+        self.user2level = {i:row[1] for i, row in enumerate(self.users.values)}
+        self.prob2level = {i:row[1] for i, row in enumerate(self.problems.values)}
         return self.users_no, self.prob_no
     
     
@@ -62,14 +64,30 @@ class Loader:
         return userId, probId, entry
 
     def get_negative_sampling(self, dataframe):
-        userId, probId, entry = [], [], []
+        userId, probId = [], []
+        posUser = set(dataframe['handle'].tolist())
+        checked = set([tuple(x) for x in dataframe.values])
+        
+        for u in posUser:
+            for p in range(self.prob_no):
+                if (u, p) not in checked:
+                    checked.add((u,p))
+                    
+                    userId.append(u)
+                    probId.append(p)
+            
+            
+        df_neg = pd.DataFrame(list(zip(userId, probId)), columns = ['handle', 'problemId'])
+        return df_neg
+        
+        '''userId, probId, entry = [], [], []
         checked = set([tuple(x) for x in dataframe.values])
         neg_checked = set()
         for up in checked:
             u = up[0]
             # zero: negative sampling
             userId, probId, entry = self.negative_sampling(u, checked, neg_checked, userId, probId, entry)
-        df_neg = pd.DataFrame(list(zip(userId, probId)))
+        df_neg = pd.DataFrame(list(zip(userId, probId)), columns = ['handle', 'problemId'])'''
         return df_neg
 
     # negative sampling
@@ -85,12 +103,12 @@ class Loader:
             if flag:
                 user.append(u)
                 prob.append(p)
-                entry.append(0)   
+                entry.append(0)
+                
         return user, prob, entry
 
     def get_idx(self, dataframe, idxlist):
-        idx = []
-        for id in idxlist:
-            for d in dataframe.index[dataframe['handle']==id].tolist():
-                idx.append(d)
-        return idx
+        
+        map = {idx:dataframe.index[dataframe['handle']==idx].tolist() for idx in set(idxlist)}
+        idx = [map[id] for id in idxlist]
+        return np.concatenate(idx)

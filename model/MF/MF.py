@@ -1,4 +1,6 @@
 import tensorflow as tf
+import numpy as np
+import pandas as pd
 
 class MF(tf.keras.Model):
     def __init__(self, user_no, prob_no, K=4):
@@ -24,3 +26,22 @@ class MF(tf.keras.Model):
 
     def save_model(self, DIR):
         self.model.save(DIR)
+        
+    def level_filtering(self, dataframe, userlevel_map, problevel_map, k):
+  
+        user = dataframe['handle'].to_numpy()
+        prob = dataframe['problemId'].to_numpy()
+        pred = dataframe['pred'].to_numpy()
+        
+        limit = min(k*4, len(pred))
+        idx = np.argpartition(-pred, limit)[:limit]
+        
+        candidates = dataframe.iloc[idx]
+        problevel = candidates['problemId'].apply(lambda x: problevel_map[x]).to_numpy()
+        maxlevel = candidates['handle'].apply(lambda x: userlevel_map[x]).to_numpy()
+        dist = np.abs(problevel-maxlevel)
+          
+        top_idx = np.argpartition(dist, k)[:limit]
+        top_k_data = dataframe.iloc[top_idx]
+        
+        return top_k_data
