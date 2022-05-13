@@ -33,15 +33,19 @@ class MF(tf.keras.Model):
         prob = dataframe['problemId'].to_numpy()
         pred = dataframe['pred'].to_numpy()
         
-        limit = min(k*4, len(pred))
+        
+        limit = min(k*10, len(pred))
         idx = np.argpartition(-pred, limit)[:limit]
         
         candidates = dataframe.iloc[idx]
         problevel = candidates['problemId'].apply(lambda x: problevel_map[x]).to_numpy()
         maxlevel = candidates['handle'].apply(lambda x: userlevel_map[x]).to_numpy()
-        dist = np.abs(problevel-maxlevel)
+        lam = np.mean(candidates['pred'].to_numpy())/10
+        dist = np.abs(problevel-maxlevel)*lam
+        candidates['pred']+=dist
           
-        top_idx = np.argpartition(dist, k)[:limit]
+        #top_idx = np.argpartition(dist, k)[:limit]
+        top_idx = np.argpartition(candidates['pred'].to_numpy(), k)[:limit]
         top_k_data = dataframe.iloc[top_idx]
         
         return top_k_data
