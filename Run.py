@@ -1,7 +1,8 @@
-import Result as rs # 경로 추가
+import Result
+import warnings
+warnings.filterwarnings('ignore')
 
 if __name__ == '__main__':
-  MODEL_DIR = '/content/drive/MyDrive/(22-1)캡스톤/recomm/Recommendation/model/MF/best_model' # 경로 변경
-  DATA_DIR = '/content/drive/MyDrive/(22-1)캡스톤/recomm/data' # 경로 변경
-  result = rs.Result(MODEL_DIR, DATA_DIR, "1", 1024)
-  print(result.get_result("beoms"))
+  result = Result(1024)
+  # id가 없는 경우 기존 아이디랑 겹치지 않게 임의지정해서 실행
+  result.get_output("gunjung2147", [1152, 2562, 1157, 2438, 2439, 11654, 1546, 11021, 11022, 2577, 9498, 2588, 1316, 1065, 1712, 1330, 2739, 2741, 2742, 10809, 10171, 10172, 10430, 15552, 2753, 4673, 10818, 2884, 10950, 10951, 10952, 8393, 11720, 2941, 1110, 14681, 2908, 10718, 1000, 1001, 3052, 15596, 1008, 2675, 2292, 10869, 5622, 10871, 4344, 10998, 2557, 8958])
