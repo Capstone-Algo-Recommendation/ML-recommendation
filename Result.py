@@ -35,8 +35,8 @@ class Result:
     model3 = tf.keras.models.load_model(BESTMODEL_DIR+'3')
     model4 = tf.keras.models.load_model(BESTMODEL_DIR+'4')
     model5 = tf.keras.models.load_model(BESTMODEL_DIR+'5')
-    #self.models = [model1, model2, model3, model4, model5]
-    self.models = [model1, model2, model3]
+    self.models = [model1, model2, model3, model4, model5]
+    #self.models = [model1, model2, model3]
 
     self.batch_size = batch_size
 
