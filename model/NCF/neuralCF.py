@@ -17,13 +17,13 @@ class NCF:
         input_prob =  tf.keras.layers.Input(shape=(1,), dtype='int32')
         
         # GMF
-        gmf_embedding_user = tf.keras.layers.Flatten()(tf.keras.layers.Embedding(user_no, K)(input_user))
-        gmf_embedding_prob =  tf.keras.layers.Flatten()(tf.keras.layers.Embedding(prob_no, K)(input_prob)) 
+        gmf_embedding_user = tf.keras.layers.Flatten()(tf.keras.layers.Embedding(self.user_no, K)(input_user))
+        gmf_embedding_prob =  tf.keras.layers.Flatten()(tf.keras.layers.Embedding(self.prob_no, K)(input_prob)) 
         gmf_matmul =  tf.keras.layers.Multiply()([gmf_embedding_user, gmf_embedding_prob])
 
         # MLP
-        mlp_embedding_user = tf.keras.layers.Flatten()(tf.keras.layers.Embedding(user_no, 32)(input_user))
-        mlp_embedding_item = tf.keras.layers.Flatten()(tf.keras.layers.Embedding(prob_no, 32)(input_prob))
+        mlp_embedding_user = tf.keras.layers.Flatten()(tf.keras.layers.Embedding(self.user_no, 32)(input_user))
+        mlp_embedding_item = tf.keras.layers.Flatten()(tf.keras.layers.Embedding(self.prob_no, 32)(input_prob))
         mlp_concat = tf.keras.layers.Concatenate()([mlp_embedding_user, mlp_embedding_item])
         mlp_dropout0 = tf.keras.layers.Dropout(0.4)(mlp_concat)
 
