@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 
-class NeuralCF:
+class NCF:
     def __init__(self, user_no, prob_no, useridx2level, probidx2level, K=4):
         # 변수
         self.user_no = user_no+5
@@ -23,14 +23,14 @@ class NeuralCF:
 
         # MLP
         mlp_embedding_user = tf.keras.layers.Flatten()(tf.keras.layers.Embedding(user_no, 32)(input_user))
-        mlp_item_embedding = tf.keras.layers.Flatten()(tf.keras.layers.Embedding(prob_no, 32)(input_prob))
+        mlp_embedding_item = tf.keras.layers.Flatten()(tf.keras.layers.Embedding(prob_no, 32)(input_prob))
         mlp_concat = tf.keras.layers.Concatenate()([mlp_embedding_user, mlp_embedding_item])
-        mlp_dropout0 = tf.keras.layers.Dropout(0.2)(mlp_concat)
+        mlp_dropout0 = tf.keras.layers.Dropout(0.4)(mlp_concat)
 
         mlp_layer1 = tf.keras.layers.Dense(64)(mlp_dropout0)
         mlp_batch_norm1 = tf.keras.layers.BatchNormalization()(mlp_layer1)
         mlp_relu1 = tf.keras.layers.Activation('relu')(mlp_batch_norm1)
-        mlp_dropout1 = tf.keras.layers.Dropout(0.2)(mlp_relu1)                    
+        mlp_dropout1 = tf.keras.layers.Dropout(0.4)(mlp_relu1)                    
               
         mlp_layer2 = tf.keras.layers.Dense(32)(mlp_dropout1)
         mlp_batch_norm2 = tf.keras.layers.BatchNormalization()(mlp_layer2)
@@ -62,23 +62,23 @@ class NeuralCF:
       hr_vad = []
       best_eval = -1
       best_epoch = -1
-      BESTMODEL_DIR = '/content/drive/MyDrive/(22-1)캡스톤/recomm/Recommendation/model/MF/best_model/cluster' + str(cluster)
+      BESTMODEL_DIR = '/content/drive/MyDrive/(22-1)캡스톤/recomm/Recommendation/model/NCF/best_model/cluster' + str(cluster)
 
       for epoch in range(0, epochs):
         ct, tr_loss, vad_loss = 0, 0, 0
         for i in range(0, train_N, batch_size):
           idxlist = range(i, min(i+batch_size, train_N-1))
-          hist = self.model.fit([train_usr[idxlist], train_prb[idxlist]], train_entry[idxlist], verbose=0)
+          hist = model.fit([train_usr[idxlist], train_prb[idxlist]], train_entry[idxlist], verbose=0)
           ct+=1
           tr_loss += hist.history['loss'][-1]
         
         print("epoch[", epoch, "] train loss: ", tr_loss / ct)
-        weights = self.model.get_weights()
+        weights = model.get_weights()
 
         ct = 0
         for i in range(0, valid_tr_N, batch_size):
           idxlist = range(i, min(i+batch_size, valid_tr_N-1))
-          hist = self.model.fit([valid_tr_usr[idxlist], valid_tr_prb[idxlist]], valid_tr_entry[idxlist],verbose=0)
+          hist = model.fit([valid_tr_usr[idxlist], valid_tr_prb[idxlist]], valid_tr_entry[idxlist],verbose=0)
           ct +=1
           vad_loss += hist.history['loss'][-1]
         
@@ -93,7 +93,7 @@ class NeuralCF:
           valid_te_usr = usrs.reshape(-1,1)
           valid_te_prb = prbs.reshape(-1,1)
 
-          pred = self.model.predict([valid_te_usr, valid_te_prb])
+          pred = model.predict([valid_te_usr, valid_te_prb])
           pred = np.concatenate(pred).reshape(-1,1)
           filtered = self.level_filtering(valid_te_usr, valid_te_prb, pred, self.useridx2level, self.probidx2level, k)
 
@@ -104,27 +104,27 @@ class NeuralCF:
           
         recall_ = np.mean(recall)
         hit_rate_ = hit_rate/valid_te_N
+        print("epoch[", epoch, "] recall: ", recall_)
+        print("epoch[", epoch, "] hit rate: ", hit_rate_)
         
-        self.model.set_weights(weights)
+        model.set_weights(weights)
         
-        if hit_rate_ > 0.30:
-          break
+        #if hit_rate_ > 0.30:
+          #break
 
         rc_vad.append(recall_)
-        print("epoch[", epoch, "] recall: ", recall_)
         hr_vad.append(hit_rate_)
-        print("epoch[", epoch, "] hit rate: ", hit_rate_)
 
         if hit_rate_ > best_eval:
           best_eval = hit_rate_
           best_epoch = epoch
-          self.model.save(BESTMODEL_DIR)
+          model.save(BESTMODEL_DIR)
 
       return rc_vad, hr_vad, best_eval, best_epoch
       
 
     def test(self, test_tr_usr, test_tr_prb, test_tr_entry, test_te_X, test_te_y, cluster, batch_size=1024, k=30):
-      BESTMODEL_DIR = '/content/drive/MyDrive/(22-1)캡스톤/recomm/Recommendation/model/MF/best_model/cluster' + str(cluster)
+      BESTMODEL_DIR = '/content/drive/MyDrive/(22-1)캡스톤/recomm/Recommendation/model/NCF/best_model/cluster' + str(cluster)
       best_model = self.load_model(BESTMODEL_DIR)
       test_tr_N = len(test_tr_usr)
       test_te_N = len(test_te_X)
@@ -133,7 +133,7 @@ class NeuralCF:
       
       for i in range(0, test_tr_N, batch_size):
           idxlist = range(i, min(i+batch_size, test_tr_N-1))
-          self.model.fit([test_tr_usr[idxlist], test_tr_prb[idxlist]], test_tr_entry[idxlist], verbose=0)
+          model.fit([test_tr_usr[idxlist], test_tr_prb[idxlist]], test_tr_entry[idxlist], verbose=0)
 
       for i in range(0, test_te_N):
         usr = test_te_X.iloc[i,0]
@@ -142,7 +142,7 @@ class NeuralCF:
         test_te_usr = usrs.reshape(-1,1)
         test_te_prb = prbs.reshape(-1,1)
 
-        pred = self.model.predict([test_te_usr, test_te_prb])
+        pred = model.predict([test_te_usr, test_te_prb])
         pred = np.concatenate(pred).reshape(-1,1)
         filtered = self.level_filtering(test_te_usr, test_te_prb, pred, self.useridx2level, self.probidx2level, k)
 
