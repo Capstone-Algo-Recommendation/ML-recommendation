@@ -83,12 +83,12 @@ class Result:
     test_prb = np.array(neg_probidx).reshape(-1,1)
 
     weights = model.get_weights()
-    for i in tf.range(0, len(train_usr), self.batch_size):
+    '''for i in tf.range(0, len(train_usr), self.batch_size):
       idxlist = range(i, min(i+self.batch_size, len(train_usr)-1))
       if len(idxlist) == 0:
         break
-      model.fit([train_usr[idxlist], train_prb[idxlist]], train_entry[idxlist], verbose=0)
-          
+      model.fit([train_usr[idxlist], train_prb[idxlist]], train_entry[idxlist], verbose=0)'''
+    model.fit([train_usr, train_prb], train_entry, verbose=0)       
     pred = model.predict([test_usr, test_prb])
     pred = np.concatenate(pred).reshape(-1,1)
     
@@ -105,7 +105,7 @@ class Result:
       return usridx, self.loaders[cluster-1].useridx2level
     except:
       usridx = self.loaders[cluster-1].users_no + 1
-      useridx2lv = copy.deepcopy(self.loaders[cluster-1].useridx2level)
+      useridx2lv = self.loaders[cluster-1].useridx2level
       useridx2lv[usridx] = maxlevel 
       return usridx, useridx2lv
   
