@@ -1,18 +1,3 @@
-import tensorflow as tf
-import pandas as pd
-import numpy as np
-import os
-import sys
-import copy
-sys.path.append('/content/drive/MyDrive/(22-1)캡스톤/recomm/Recommendation/')
-sys.path.append('/content/drive/MyDrive/(22-1)캡스톤/recomm/Recommendation/model/MF')
-sys.path.append('/content/drive/MyDrive/(22-1)캡스톤/recomm/Recommendation/model/NCF')
-import Loader
-import MF
-from neuralCF import NCF
-import warnings
-warnings.filterwarnings('ignore')
-
 class Result:
   def __init__(self, batch_size):
     DIR = '/content/drive/MyDrive/(22-1)캡스톤/recomm/data/preprocessed/'
@@ -88,11 +73,12 @@ class Result:
       if len(idxlist) == 0:
         break
       model.fit([train_usr[idxlist], train_prb[idxlist]], train_entry[idxlist], verbose=0)'''
-    model.fit([train_usr, train_prb], train_entry, verbose=0)       
-    pred = model.predict([test_usr, test_prb])
-    pred = np.concatenate(pred).reshape(-1,1)
+    with tf.device('/device:CPU:0'):
+      model.fit([train_usr, train_prb], train_entry, verbose=0)       
+      pred = model.predict([test_usr, test_prb])
+      pred = np.concatenate(pred).reshape(-1,1)
     
-    filtered = self.ncf.level_filtering(test_usr, test_prb, pred, useridx2level, self.loaders[cluster-1].probidx2level, k=30)
+      filtered = self.ncf.level_filtering(test_usr, test_prb, pred, useridx2level, self.loaders[cluster-1].probidx2level, k=30)
     #filtered = self.mf.level_filtering(test_usr, test_prb, pred, self.loaders[cluster-1].useridx2level, self.loaders[cluster-1].probidx2level, k=30)
     model.set_weights(weights)
 
