@@ -35,7 +35,7 @@
       * **validation/test data**: Dataset의 0.1
   
 ## 2. Model
-* 잠재요인 협업필터링 기반 모델
+* 잠재요인 협업필터링 기반 모델 + level filtering
 * 평가지표: Recall@30, Hit Rate@30
 * **MF**
   * **학습 정보**
